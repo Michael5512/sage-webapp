@@ -694,6 +694,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 </div>
 
 <!-- ══════════ APP ══════════ -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="view" id="app">
   <!-- SIDEBAR -->
   <div class="sidebar">
@@ -731,7 +732,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="hamburger" onclick="toggleSidebar()" style="display:none">☰</div>
+        <div class="topbar-title" id="page-title">Dashboard</div>
+      </div>
       <div class="topbar-right">
         <div class="topbar-btn">🔔</div>
         <div class="topbar-btn">⚙️</div>
@@ -1207,7 +1211,7 @@ function toggleAuth(type) {
 }
 
 function showApp() {
-  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = "none");
+  document.querySelectorAll("[id^=\"page-\"]").forEach(p => { if(p.id !== "page-content" && p.id !== "page-title") p.style.display = "none"; });
   document.getElementById("page-home").style.display = "block";
   document.getElementById("page-title").textContent = "Dashboard";
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
@@ -1232,7 +1236,7 @@ const pageTitles = {
 };
 
 function switchPage(name, navEl) {
-  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+  document.querySelectorAll("[id^=\"page-\"]").forEach(p => { if(p.id !== "page-content" && p.id !== "page-title") p.style.display = "none"; });
   document.getElementById('page-' + name).style.display = 'block';
   document.getElementById('page-title').textContent = pageTitles[name];
   if (navEl) {
@@ -1426,14 +1430,18 @@ async function sendChatMessage() {
   </div>`;
 
   // Typing indicator
-  messages.innerHTML += `<div class="msg" id="typing-msg">
+  messages.innerHTML += `<div class="msg" id="typing-msg"><div class="msg-avatar ai-av">S</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div><div style="font-size:11px;color:var(--text3);margin-top:6px" id="cold-start-msg"></div></div></div>`;
     <div class="msg-avatar ai-av">S</div>
     <div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div>
   </div>`;
   input.value = '';
   messages.scrollTop = messages.scrollHeight;
 
+  // Cold start warning after 5s
+  const coldTimer = setTimeout(() => { const el = document.getElementById("cold-start-msg"); if(el) el.textContent = "⏳ Waking up server... (first message may take 30s)"; }, 5000);
+
   try {
+    const data = await api("POST", "/api/chat/message", {
     const data = await api('POST', '/api/chat/message', {
       message: msg,
       subject: currentSubject,
@@ -1444,7 +1452,7 @@ async function sendChatMessage() {
     chatHistory.push({ role: 'user', content: msg });
     chatHistory.push({ role: 'assistant', content: data.reply });
 
-    document.getElementById('typing-msg')?.remove();
+    clearTimeout(coldTimer); document.getElementById("typing-msg")?.remove();
 
     // Format reply (convert **text** to bold, newlines to <br>)
     const formatted = formatMessage(data.reply);
@@ -1461,7 +1469,7 @@ async function sendChatMessage() {
 
   } catch (err) {
     document.getElementById('typing-msg')?.remove();
-    if (err.message.includes('Daily limit')) {
+    clearTimeout(coldTimer); document.getElementById("typing-msg")?.remove();
       messages.innerHTML += `<div class="msg">
         <div class="msg-avatar ai-av">S</div>
         <div class="msg-content" style="color:var(--gold)">
@@ -1947,6 +1955,41 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
   });
 });
 
+
+// ── Mobile Sidebar Toggle ────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+function closeSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+// Close sidebar when nav item clicked on mobile
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+
+  // Show hamburger on mobile
+  const hamburger = document.querySelector('.hamburger');
+  if (hamburger && window.innerWidth <= 768) {
+    hamburger.style.display = 'flex';
+  }
+  window.addEventListener('resize', () => {
+    const hamburger = document.querySelector('.hamburger');
+    if (hamburger) hamburger.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+  });
+});
+
 // ── Toast ────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -2028,6 +2071,172 @@ document.addEventListener('DOMContentLoaded', () => {
 .typing span:nth-child(2) { animation-delay:.2s; }
 .typing span:nth-child(3) { animation-delay:.4s; }
 @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* ══════════════════════════════════
+   MOBILE RESPONSIVE CSS
+══════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Sidebar - hidden by default on mobile */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.3s ease;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+  }
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  /* Main content takes full width */
+  .main {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+
+  /* Topbar - show hamburger menu */
+  .topbar {
+    padding: 12px 16px;
+  }
+  .topbar-title {
+    font-size: 16px;
+  }
+  .hamburger {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    margin-right: 10px;
+  }
+
+  /* Content padding */
+  .content {
+    padding: 16px !important;
+  }
+
+  /* Dashboard grid */
+  .dash-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Dashboard row */
+  .dash-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Chat layout - single column */
+  .chat-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+  .subject-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    height: auto !important;
+    padding: 12px !important;
+  }
+  .subject-item {
+    flex: 0 0 auto;
+    padding: 6px 10px !important;
+    font-size: 12px;
+  }
+  .chat-window {
+    height: 60vh;
+  }
+
+  /* Profile layout */
+  .profile-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Premium grid */
+  .premium-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin grid */
+  .admin-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Landing page */
+  .hero {
+    grid-template-columns: 1fr !important;
+    padding: 40px 20px !important;
+  }
+  .hero h1 {
+    font-size: 36px !important;
+  }
+  .land-nav {
+    padding: 16px 20px !important;
+  }
+  .nav-links {
+    display: none !important;
+  }
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .features-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Auth page */
+  .auth-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .auth-left {
+    display: none !important;
+  }
+
+  /* Topbar buttons */
+  .topbar-right .topbar-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+  .topbar-right .btn-primary {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  /* Leaderboard */
+  #page-leaderboard .dash-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Metric cards */
+  .metric-card {
+    padding: 16px !important;
+  }
+  .metric-value {
+    font-size: 24px !important;
+  }
+
+  /* Form rows */
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 </style>
 </body>
 </html>
