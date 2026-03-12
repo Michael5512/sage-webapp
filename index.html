@@ -179,6 +179,13 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
 .typing span:nth-child(3){animation-delay:.4s;}
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
+
+/* Timer */
+.quiz-timer{font-size:22px;font-weight:700;width:48px;height:48px;border-radius:50%;border:3px solid var(--teal);display:flex;align-items:center;justify-content:center;color:var(--teal);transition:.3s;flex-shrink:0;}
+.quiz-timer.warning{border-color:var(--gold);color:var(--gold);}
+.quiz-timer.danger{border-color:var(--red);color:var(--red);animation:pulse .5s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -294,6 +301,8 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
         <div class="nav-item" id="nav-premium" onclick="showPage('premium',this)"><span class="icon">⭐</span> Go Premium</div>
         <div class="nav-label">Support</div>
         <div class="nav-item" id="nav-feedback" onclick="showPage('feedback',this)"><span class="icon">💬</span> Feedback</div>
+        <div class="nav-label">Admin</div>
+        <div class="nav-item" id="nav-admin" onclick="showPage('admin',this)"><span class="icon">⚙️</span> Admin Panel</div>
       </nav>
       <div class="sidebar-bottom">
         <div class="nav-item" onclick="doLogout()" style="color:var(--red)"><span class="icon">🚪</span> Logout</div>
@@ -377,6 +386,14 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
               <h2>🎯 Take a Quiz</h2>
               <p>Select a subject and test your knowledge</p>
               <div class="quiz-subject-grid" id="quiz-subject-grid"></div>
+              <div id="quiz-count-selector" style="margin-bottom:24px;">
+                <p style="color:var(--text2);font-size:13px;margin-bottom:12px;">Number of questions:</p>
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;" id="count-btns">
+                  <button class="quiz-subj-btn selected" onclick="setQuizCount(10,this)" style="padding:10px 20px;">10 Questions</button>
+                  <button class="quiz-subj-btn premium-only" onclick="setQuizCount(25,this)" style="padding:10px 20px;position:relative;">25 Questions <span style="position:absolute;top:-6px;right:-6px;background:var(--teal);color:#fff;font-size:9px;padding:2px 5px;border-radius:4px;">PRO</span></button>
+                  <button class="quiz-subj-btn premium-only" onclick="setQuizCount(50,this)" style="padding:10px 20px;position:relative;">50 Questions <span style="position:absolute;top:-6px;right:-6px;background:var(--gold);color:#000;font-size:9px;padding:2px 5px;border-radius:4px;">PRO</span></button>
+                </div>
+              </div>
               <button class="btn-primary" onclick="startQuiz()" style="padding:12px 32px;font-size:15px;">Start Quiz →</button>
             </div>
           </div>
@@ -414,28 +431,56 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
           <div style="text-align:center;margin-bottom:32px;">
             <h2 style="font-size:28px;">⭐ Go Premium</h2>
             <p style="color:var(--text2);margin-top:8px;">Unlimited AI messages, quizzes and more</p>
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:20px;padding:6px 16px;margin-top:12px;">
+              <span style="color:var(--green);font-size:13px;">✅ International cards accepted</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <img src="https://img.icons8.com/color/32/visa.png" title="Visa" style="height:24px;"/>
+              <img src="https://img.icons8.com/color/32/mastercard.png" title="Mastercard" style="height:24px;"/>
+              <span style="color:var(--text3);font-size:12px;">Visa • Mastercard • Verve • Bank Transfer</span>
+            </div>
           </div>
           <div class="plans-grid">
             <div class="plan-card">
-              <div style="font-size:14px;color:var(--text2);">Weekly</div>
+              <div style="font-size:14px;color:var(--text2);margin-bottom:4px;">Weekly</div>
               <div class="plan-price">₦500</div>
+              <div style="color:var(--text3);font-size:12px;margin-bottom:4px;">~$0.30 USD</div>
+              <div style="color:var(--text3);font-size:12px;margin-bottom:16px;">~£0.24 GBP</div>
               <ul class="plan-features">
                 <li>Unlimited AI messages</li>
-                <li>Unlimited quizzes</li>
+                <li>Unlimited quizzes (10, 25, 50)</li>
+                <li>NCLEX-style questions</li>
                 <li>Priority support</li>
               </ul>
               <button class="btn-full btn-teal-full" onclick="initPayment('weekly')">Subscribe Weekly</button>
+              <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text3);">Your card will be charged ₦500<br>International cards charged equivalent in your currency</div>
             </div>
             <div class="plan-card featured">
-              <div style="font-size:14px;color:var(--teal);font-weight:600;">Monthly — Best Value</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <div style="font-size:14px;color:var(--teal);font-weight:600;">Monthly</div>
+                <span style="background:var(--teal);color:#fff;font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;">BEST VALUE</span>
+              </div>
               <div class="plan-price">₦2,000</div>
+              <div style="color:var(--text3);font-size:12px;margin-bottom:4px;">~$1.20 USD</div>
+              <div style="color:var(--text3);font-size:12px;margin-bottom:4px;">~£0.95 GBP</div>
+              <div style="color:var(--green);font-size:12px;font-weight:600;margin-bottom:16px;">Save ₦2,000 vs weekly! 🎉</div>
               <ul class="plan-features">
                 <li>Unlimited AI messages</li>
-                <li>Unlimited quizzes</li>
+                <li>Unlimited quizzes (10, 25, 50)</li>
+                <li>NCLEX-style questions</li>
                 <li>Priority support</li>
-                <li>Save ₦2,000/month</li>
+                <li>Leaderboard badge ⭐</li>
               </ul>
               <button class="btn-full btn-teal-full" onclick="initPayment('monthly')">Subscribe Monthly</button>
+              <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text3);">Your card will be charged ₦2,000<br>International cards charged equivalent in your currency</div>
+            </div>
+          </div>
+          <div style="text-align:center;margin-top:28px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:14px;max-width:600px;margin-left:auto;margin-right:auto;">
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px;">🌍 Paying from outside Nigeria?</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.7;">
+              No problem! We accept international Visa and Mastercard.<br>
+              Your bank will automatically convert the Naira amount to your local currency.<br>
+              At current rates: <strong style="color:var(--teal);">₦500 ≈ $0.30 USD ≈ £0.24 GBP</strong> — incredibly affordable! 🚀
             </div>
           </div>
         </div>
@@ -448,7 +493,87 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
             <button class="btn-full btn-teal-full" onclick="submitFeedback()">Submit Feedback</button>
           </div>
         </div>
-      </div><!-- /content -->
+      
+        <!-- ADMIN -->
+        <div class="page" id="page-admin">
+          <div id="admin-login" style="max-width:400px;margin:0 auto;">
+            <div class="card">
+              <h3>🔐 Admin Access</h3>
+              <p style="color:var(--text2);font-size:13px;margin-bottom:16px;">Enter admin password to continue</p>
+              <div class="form-group"><label>Admin Password</label><input type="password" id="admin-pass" placeholder="Enter admin password" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;"/></div>
+              <button class="btn-full btn-teal-full" onclick="adminLogin()">Access Admin Panel</button>
+            </div>
+          </div>
+          <div id="admin-dashboard" style="display:none;">
+            <!-- Stats -->
+            <div class="stats-grid" style="margin-bottom:24px;">
+              <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="admin-total-users">-</div><div class="stat-label">Total Users</div></div>
+              <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" id="admin-premium-users">-</div><div class="stat-label">Premium Users</div></div>
+              <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-value" id="admin-total-msgs">-</div><div class="stat-label">Total Messages</div></div>
+              <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="admin-revenue">-</div><div class="stat-label">Total Revenue</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+              <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-value" id="admin-active-today">-</div><div class="stat-label">Active Today</div></div>
+              <div class="stat-card"><div class="stat-icon">🎫</div><div class="stat-value" id="admin-open-tickets">-</div><div class="stat-label">Open Tickets</div></div>
+            </div>
+            <!-- Grant Premium -->
+            <div class="card" style="margin-bottom:20px;">
+              <h3>🎁 Grant Premium</h3>
+              <div style="display:grid;grid-template-columns:1fr 1fr 80px auto;gap:12px;align-items:end;margin-top:12px;">
+                <div class="form-group" style="margin:0;"><label>User Email</label><input id="grant-email" placeholder="user@email.com" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:13px;"/></div>
+                <div class="form-group" style="margin:0;"><label>Plan</label>
+                  <select id="grant-plan" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:13px;">
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;"><label>Days</label><input id="grant-days" type="number" value="7" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:13px;"/></div>
+                <button class="btn-primary" onclick="grantPremium()" style="padding:10px 16px;white-space:nowrap;">Grant ✓</button>
+              </div>
+            </div>
+            <!-- Users Table -->
+            <div class="card" style="margin-bottom:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <h3>👥 All Users</h3>
+                <button class="btn-primary" onclick="loadAdminUsers()" style="padding:6px 14px;font-size:12px;">Refresh</button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;" id="admin-users-table">
+                  <thead><tr style="border-bottom:1px solid var(--border);color:var(--text2);">
+                    <th style="text-align:left;padding:8px;">Name</th>
+                    <th style="text-align:left;padding:8px;">Email</th>
+                    <th style="text-align:left;padding:8px;">Plan</th>
+                    <th style="text-align:left;padding:8px;">Joined</th>
+                    <th style="text-align:left;padding:8px;">Messages</th>
+                    <th style="text-align:left;padding:8px;">Points</th>
+                  </tr></thead>
+                  <tbody id="admin-users-body"><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text2);">Loading...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Transactions Table -->
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <h3>💳 Transactions</h3>
+                <button class="btn-primary" onclick="loadAdminTransactions()" style="padding:6px 14px;font-size:12px;">Refresh</button>
+              </div>
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                  <thead><tr style="border-bottom:1px solid var(--border);color:var(--text2);">
+                    <th style="text-align:left;padding:8px;">User</th>
+                    <th style="text-align:left;padding:8px;">Plan</th>
+                    <th style="text-align:left;padding:8px;">Amount</th>
+                    <th style="text-align:left;padding:8px;">Status</th>
+                    <th style="text-align:left;padding:8px;">Date</th>
+                  </tr></thead>
+                  <tbody id="admin-tx-body"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">Loading...</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /content -->
     </div><!-- /main -->
   </div><!-- /app-layout -->
 </div><!-- /view-app -->
@@ -503,7 +628,7 @@ function showAuthBox(type) {
 }
 
 // ── Page Switching ──────────────────────────────────────
-const PAGE_TITLES = {home:'Dashboard',chat:'AI Chat',quiz:'Quizzes',leaderboard:'Leaderboard',profile:'Profile',premium:'Go Premium',feedback:'Feedback'};
+const PAGE_TITLES = {home:'Dashboard',chat:'AI Chat',quiz:'Quizzes',leaderboard:'Leaderboard',profile:'Profile',premium:'Go Premium',feedback:'Feedback',admin:'Admin Panel'};
 
 function showPage(name, navEl) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -699,6 +824,7 @@ function escHtml(s) {
 
 // ── Quiz ─────────────────────────────────────────────────
 function buildQuizSubjects() {
+  targetTotal = 10; // reset to default
   const container = document.getElementById('quiz-subject-grid');
   container.innerHTML = SUBJECTS.map(s =>
     `<button class="quiz-subj-btn" onclick="selectQuizSubject('${s.name}',this)">${s.icon} ${s.name}</button>`
@@ -718,23 +844,104 @@ function highlightQuizSubject(name) {
   });
 }
 
+function setQuizCount(count, el) {
+  // Check if premium required
+  if (count > 10 && (!currentUser || !currentUser.premium)) {
+    toast('⭐ ' + count + ' questions requires Premium! Upgrade to unlock.');
+    return;
+  }
+  targetTotal = count;
+  document.querySelectorAll('#count-btns .quiz-subj-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 async function startQuiz() {
   if (!selectedQuizSubject) return toast('Please select a subject!');
-  const content = document.getElementById('quiz-content');
-  content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text2);">🎯 Generating quiz for <strong>${selectedQuizSubject}</strong>...<br><br>This may take 10-15 seconds ⏳</div>`;
+  allQuestions = [];
+  batchIndex = 0;
+  nextBatch = null;
+  currentQuestion = 0;
+  score = 0;
+
+  const qc = document.getElementById('quiz-content');
+  qc.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text2);">
+    🎯 Generating your ${targetTotal}-question quiz...<br>
+    <strong style="color:var(--teal)">${selectedQuizSubject}</strong><br><br>
+    <div style="font-size:13px;">This takes 10-15 seconds ⏳</div>
+  </div>`;
+
   try {
-    const data = await api('POST', '/api/quiz/generate', {subject: selectedQuizSubject, difficulty: 'intermediate'});
-    quizData = data;
-    currentQuestion = 0;
-    score = 0;
+    const data = await api('POST', '/api/quiz/generate', {
+      subject: selectedQuizSubject,
+      difficulty: 'intermediate',
+      count: 10,
+      batchIndex: 0
+    });
+    allQuestions = data.questions;
+    batchIndex = 1;
+    quizData = { questions: allQuestions };
+
+    // If user wants more than 10, preload next batch silently
+    if (targetTotal > 10) {
+      preloadNextBatch();
+    }
     showQuestion();
   } catch(e) {
-    content.innerHTML = `<div style="text-align:center;padding:60px;color:var(--red);">❌ Could not generate quiz. Please try again.<br><br><button class="btn-primary" onclick="buildQuizSubjects();initQuizPage()">Try Again</button></div>`;
-    buildQuizSubjects();
+    document.getElementById('quiz-content').innerHTML = `<div style="text-align:center;padding:60px;color:var(--red);">❌ Could not generate quiz. Please try again.<br><br><button class="btn-primary" onclick="initQuizPage()">Try Again</button></div>`;
+  }
+}
+
+async function preloadNextBatch() {
+  if (isLoadingBatch) return;
+  isLoadingBatch = true;
+  try {
+    const data = await api('POST', '/api/quiz/generate', {
+      subject: selectedQuizSubject,
+      difficulty: 'intermediate',
+      count: 10,
+      batchIndex: batchIndex
+    });
+    nextBatch = data.questions;
+    batchIndex++;
+  } catch(e) {
+    nextBatch = null;
+  }
+  isLoadingBatch = false;
+}
+
+async function appendNextBatch() {
+  // Use preloaded batch if ready
+  if (nextBatch) {
+    allQuestions = allQuestions.concat(nextBatch);
+    quizData = { questions: allQuestions };
+    nextBatch = null;
+    // Preload another batch if still needed
+    if (allQuestions.length < targetTotal) {
+      preloadNextBatch();
+    }
+  } else {
+    // Batch not ready yet - load now
+    try {
+      const data = await api('POST', '/api/quiz/generate', {
+        subject: selectedQuizSubject,
+        difficulty: 'intermediate',
+        count: 10,
+        batchIndex: batchIndex
+      });
+      allQuestions = allQuestions.concat(data.questions);
+      quizData = { questions: allQuestions };
+      batchIndex++;
+    } catch {}
   }
 }
 
 function initQuizPage() {
+  clearInterval(timerInterval);
+  allQuestions = [];
+  targetTotal = 10;
+  batchIndex = 0;
+  nextBatch = null;
+  isLoadingBatch = false;
   const content = document.getElementById('quiz-content');
   selectedQuizSubject = '';
   quizData = null;
@@ -743,27 +950,79 @@ function initQuizPage() {
 }
 
 function showQuestion() {
-  const q = quizData.questions[currentQuestion];
-  const total = quizData.questions.length;
-  const pct = (currentQuestion / total) * 100;
+  const q = allQuestions[currentQuestion];
+  const total = Math.min(targetTotal, allQuestions.length);
+  const displayTotal = targetTotal;
+  const pct = (currentQuestion / displayTotal) * 100;
+
+  // Silently preload next batch when student reaches Q7 of current batch
+  const posInBatch = currentQuestion % 10;
+  if (posInBatch === 6 && allQuestions.length < targetTotal && !isLoadingBatch) {
+    preloadNextBatch();
+  }
+  clearInterval(timerInterval);
   document.getElementById('quiz-content').innerHTML = `
     <div class="quiz-card">
       <div class="quiz-bar">
-        <span class="quiz-counter">Q${currentQuestion+1}/${total}</span>
+        <span class="quiz-counter">Q${currentQuestion+1}/${displayTotal}</span>
         <div class="quiz-progress"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
         <span class="quiz-counter" style="color:var(--teal)">Score: ${score}</span>
+        <div class="quiz-timer" id="quiz-timer">35</div>
       </div>
       <div class="quiz-question">${q.question}</div>
       <div class="quiz-options">
-        ${q.options.map((opt,i) => `<div class="quiz-option" onclick="selectOpt(this,'${String.fromCharCode(65+i)}')"><div class="opt-letter">${String.fromCharCode(65+i)}</div>${escHtml(opt.replace(/^[A-D]\.\s*/,''))}</div>`).join('')}
+        ${q.options.map((opt,i) => `<div class="quiz-option" onclick="selectOpt(this,'${String.fromCharCode(65+i)}')" ><div class="opt-letter">${String.fromCharCode(65+i)}</div>${escHtml(opt.replace(/^[A-D]\.\s*/,''))}</div>`).join('')}
       </div>
       <div class="quiz-footer" id="quiz-footer">
         <button class="btn-primary" onclick="submitAnswer()" style="padding:10px 24px;">Submit Answer</button>
       </div>
     </div>`;
+  startTimer();
 }
 
 let selectedOpt = null;
+let timerInterval = null;
+let timeLeft = 35;
+let allQuestions = [];       // All questions across batches
+let targetTotal = 10;        // Total questions for this session
+let batchIndex = 0;          // Which batch we are on
+let nextBatch = null;        // Pre-loaded next batch
+let isLoadingBatch = false;  // Prevent duplicate fetches
+function startTimer() {
+  timeLeft = 35;
+  const el = document.getElementById('quiz-timer');
+  if (!el) return;
+  el.textContent = timeLeft;
+  el.className = 'quiz-timer';
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const timerEl = document.getElementById('quiz-timer');
+    if (!timerEl) { clearInterval(timerInterval); return; }
+    timerEl.textContent = timeLeft;
+    if (timeLeft <= 10) timerEl.className = 'quiz-timer warning';
+    if (timeLeft <= 5) timerEl.className = 'quiz-timer danger';
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      // Auto-submit as wrong if no answer
+      if (!selectedOpt) {
+        toast('⏰ Time up!');
+        const q = quizData.questions[currentQuestion];
+        document.querySelectorAll('.quiz-option').forEach(opt => {
+          if (opt.querySelector('.opt-letter').textContent === q.correct) opt.classList.add('correct');
+          opt.onclick = null;
+        });
+        const footer = document.getElementById('quiz-footer');
+        const nextBtn = currentQuestion + 1 < quizData.questions.length
+          ? '<button class="btn-primary" onclick="nextQ()" style="padding:10px 24px;">Next →</button>'
+          : '<button class="btn-primary" onclick="showResults()" style="padding:10px 24px;">See Results 🎯</button>';
+        if (footer) footer.innerHTML = '<div class="explanation">⏰ Time up! The correct answer was <strong>' + q.correct + '</strong>. ' + q.explanation + '</div>' + nextBtn;
+        selectedOpt = null;
+      }
+    }
+  }, 1000);
+}
+
 function selectOpt(el, letter) {
   document.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
@@ -772,6 +1031,7 @@ function selectOpt(el, letter) {
 
 function submitAnswer() {
   if (!selectedOpt) return toast('Please select an answer!');
+  clearInterval(timerInterval);
   const q = quizData.questions[currentQuestion];
   const correct = q.correct;
   const isCorrect = selectedOpt === correct;
@@ -792,13 +1052,26 @@ function submitAnswer() {
   selectedOpt = null;
 }
 
-function nextQ() {
+async function nextQ() {
   currentQuestion++;
-  showQuestion();
+
+  // If we need more questions and are at the boundary, fetch next batch
+  if (currentQuestion >= allQuestions.length && allQuestions.length < targetTotal) {
+    const qc = document.getElementById('quiz-content');
+    qc.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text2);">⏳ Loading next questions...</div>`;
+    await appendNextBatch();
+  }
+
+  if (currentQuestion >= targetTotal || currentQuestion >= allQuestions.length) {
+    showResults();
+  } else {
+    showQuestion();
+  }
 }
 
 async function showResults() {
-  const total = quizData.questions.length;
+  clearInterval(timerInterval);
+  const total = Math.min(currentQuestion, allQuestions.length);
   const pct = Math.round((score/total)*100);
   document.getElementById('quiz-content').innerHTML = `
     <div style="text-align:center;max-width:480px;margin:0 auto;padding:40px 0;">
@@ -887,6 +1160,82 @@ async function submitFeedback() {
   } catch(e) { toast('❌ ' + e.message); }
 }
 
+
+// ── Admin ────────────────────────────────────────────────
+let adminPassword = '';
+
+async function adminLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  if (!pass) return toast('Enter admin password!');
+  try {
+    const res = await fetch(API + '/api/admin/stats', {headers:{'x-admin-password': pass}});
+    if (!res.ok) return toast('❌ Wrong password!');
+    const data = await res.json();
+    adminPassword = pass;
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    // Populate stats
+    document.getElementById('admin-total-users').textContent = data.totalUsers || 0;
+    document.getElementById('admin-premium-users').textContent = data.premiumUsers || 0;
+    document.getElementById('admin-total-msgs').textContent = data.totalMessages || 0;
+    document.getElementById('admin-revenue').textContent = '₦' + (data.revenue || 0).toLocaleString();
+    document.getElementById('admin-active-today').textContent = data.activeToday || 0;
+    document.getElementById('admin-open-tickets').textContent = data.openTickets || 0;
+    loadAdminUsers();
+    loadAdminTransactions();
+  } catch { toast('❌ Could not connect to admin'); }
+}
+
+async function loadAdminUsers() {
+  try {
+    const res = await fetch(API + '/api/admin/users', {headers:{'x-admin-password': adminPassword}});
+    const users = await res.json();
+    document.getElementById('admin-users-body').innerHTML = users.map(u => `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;">${u.firstName} ${u.lastName||''}</td>
+        <td style="padding:8px;color:var(--text2);">${u.email}</td>
+        <td style="padding:8px;"><span style="background:${u.premium?'rgba(30,144,255,0.1)':'var(--bg3)'};color:${u.premium?'var(--teal)':'var(--text2)'};padding:2px 8px;border-radius:4px;font-size:11px;">${u.premium?'⭐ Premium':'Free'}</span></td>
+        <td style="padding:8px;color:var(--text2);">${new Date(u.createdAt).toLocaleDateString()}</td>
+        <td style="padding:8px;">${u.totalMessages||0}</td>
+        <td style="padding:8px;color:var(--teal);">${u.points||0}</td>
+      </tr>`).join('');
+  } catch { toast('❌ Could not load users'); }
+}
+
+async function loadAdminTransactions() {
+  try {
+    const res = await fetch(API + '/api/admin/transactions', {headers:{'x-admin-password': adminPassword}});
+    const txs = await res.json();
+    document.getElementById('admin-tx-body').innerHTML = txs.length ? txs.map(t => `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;">${t.userId}</td>
+        <td style="padding:8px;">${t.plan}</td>
+        <td style="padding:8px;color:var(--teal);">₦${(t.amount||0).toLocaleString()}</td>
+        <td style="padding:8px;"><span style="color:${t.status==='success'?'var(--green)':'var(--text2)'};">${t.status}</span></td>
+        <td style="padding:8px;color:var(--text2);">${new Date(t.date).toLocaleDateString()}</td>
+      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">No transactions yet</td></tr>';
+  } catch { toast('❌ Could not load transactions'); }
+}
+
+async function grantPremium() {
+  const email = document.getElementById('grant-email').value.trim();
+  const plan = document.getElementById('grant-plan').value;
+  const days = document.getElementById('grant-days').value;
+  if (!email) return toast('Enter user email!');
+  try {
+    const res = await fetch(API + '/api/admin/grant-premium', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-password':adminPassword},
+      body: JSON.stringify({email, plan, days: parseInt(days)})
+    });
+    const data = await res.json();
+    toast('✅ ' + data.message);
+    document.getElementById('grant-email').value = '';
+    loadAdminUsers();
+  } catch { toast('❌ Could not grant premium'); }
+}
+
+
 // ── Init ─────────────────────────────────────────────────
 window.addEventListener('load', () => {
   // Show hamburger on mobile
@@ -901,4 +1250,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
