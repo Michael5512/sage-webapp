@@ -694,7 +694,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 </div>
 
 <!-- ══════════ APP ══════════ -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:199;"></div>
 <div class="view" id="app">
   <!-- SIDEBAR -->
   <div class="sidebar">
@@ -1211,14 +1211,15 @@ function toggleAuth(type) {
 }
 
 function showApp() {
-  document.querySelectorAll("[id^=\"page-\"]").forEach(p => { if(p.id !== "page-content" && p.id !== "page-title") p.style.display = "none"; });
-  document.getElementById("page-home").style.display = "block";
-  document.getElementById("page-title").textContent = "Dashboard";
-  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-  document.querySelector(".nav-item").classList.add("active");
+  const pages = ['home','chat','courses','quiz','leaderboard','profile','premium','feedback','support','admin'];
+  pages.forEach(p => { const el = document.getElementById('page-'+p); if(el) el.style.display='none'; });
+  document.getElementById('page-home').style.display = 'block';
+  document.getElementById('page-title').textContent = 'Dashboard';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const firstNav = document.querySelector('.nav-item'); if(firstNav) firstNav.classList.add('active');
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('app').classList.add('active');
-  if (!tutorialShown) { tutorialShown = true; setTimeout(showTutorial, 700); }
+  // Tutorial disabled on auto-load to prevent click blocking
   loadDashboard();
 }
 
@@ -1236,18 +1237,17 @@ const pageTitles = {
 };
 
 function switchPage(name, navEl) {
-  document.querySelectorAll("[id^=\"page-\"]").forEach(p => { if(p.id !== "page-content" && p.id !== "page-title") p.style.display = "none"; });
-  document.getElementById('page-' + name).style.display = 'block';
-  document.getElementById('page-title').textContent = pageTitles[name];
-  if (navEl) {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    navEl.classList.add('active');
-  }
+  const pages = ['home','chat','courses','quiz','leaderboard','profile','premium','feedback','support','admin'];
+  pages.forEach(p => { const el = document.getElementById('page-'+p); if(el) el.style.display='none'; });
+  const target = document.getElementById('page-'+name); if(target) target.style.display='block';
+  document.getElementById('page-title').textContent = pageTitles[name] || name;
+  if (navEl) { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); navEl.classList.add('active'); }
   if (name === 'leaderboard') loadLeaderboard();
   if (name === 'profile') loadProfile();
   if (name === 'admin') loadAdmin();
   if (name === 'quiz') initQuizPage();
   if (name === 'chat') initChat();
+  if (window.innerWidth <= 768) closeSidebar();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1430,7 +1430,7 @@ async function sendChatMessage() {
   </div>`;
 
   // Typing indicator
-  messages.innerHTML += `<div class="msg" id="typing-msg"><div class="msg-avatar ai-av">S</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div><div style="font-size:11px;color:var(--text3);margin-top:6px" id="cold-start-msg"></div></div></div>`;
+  messages.innerHTML += `<div class="msg" id="typing-msg"><div class="msg-avatar ai-av">S</div><div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
     <div class="msg-avatar ai-av">S</div>
     <div class="msg-content"><div class="typing"><span></span><span></span><span></span></div></div>
   </div>`;
@@ -1972,20 +1972,11 @@ function closeSidebar() {
 }
 
 // Close sidebar when nav item clicked on mobile
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      if (window.innerWidth <= 768) closeSidebar();
-    });
-  });
-
-  // Show hamburger on mobile
+// Mobile hamburger init
+window.addEventListener('DOMContentLoaded', () => {
   const hamburger = document.querySelector('.hamburger');
-  if (hamburger && window.innerWidth <= 768) {
-    hamburger.style.display = 'flex';
-  }
+  if (hamburger) hamburger.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
   window.addEventListener('resize', () => {
-    const hamburger = document.querySelector('.hamburger');
     if (hamburger) hamburger.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
   });
 });
@@ -2000,35 +1991,8 @@ function showToast(msg) {
 
 // ── Update Button onclick attributes in HTML ─────────
 // These override the static onclick attributes
-document.addEventListener('DOMContentLoaded', () => {
-  // Wire up auth buttons
-  document.getElementById('reg-btn')?.addEventListener('click', doRegister);
-  document.getElementById('login-btn')?.addEventListener('click', doLogin);
-
-  // Wire up profile buttons
-  document.querySelectorAll('.profile-main .btn-primary').forEach((btn, i) => {
-    if (i === 0) btn.onclick = saveProfile;
-    if (i === 1) btn.onclick = changePassword;
-  });
-
-  // Wire up premium buttons
-  document.querySelectorAll('.btn-full-teal').forEach(btn => {
-    const text = btn.textContent;
-    if (text.includes('500')) btn.onclick = () => initPayment('weekly');
-    if (text.includes('2000')) btn.onclick = () => initPayment('monthly');
-  });
-
-  // Wire up feedback submit
-  document.querySelectorAll('#page-feedback .btn-full-teal').forEach(btn => {
-    btn.onclick = submitFeedback;
-  });
-
-  // Wire up support ticket submit
-  document.querySelectorAll('#page-support .btn-full-teal').forEach(btn => {
-    btn.onclick = submitTicket;
-  });
-
-  // Auto-login if token exists
+// Auto-login on page load
+window.addEventListener('load', () => {
   autoLogin();
 });
 </script>
