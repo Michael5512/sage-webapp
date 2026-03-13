@@ -1232,7 +1232,7 @@ async function submitTicket() {
     const data = await api('POST', '/api/support/ticket', {category, priority, description});
     document.getElementById('ticket-description').value = '';
     document.getElementById('ticket-success').style.display = 'block';
-    document.getElementById('ticket-id-display').textContent = 'Ticket ID: ' + data.ticketId + ' — We'll reply within 2 hours!';
+    document.getElementById('ticket-id-display').textContent = 'Ticket ID: ' + data.ticketId + ' \u2014 We will reply within 2 hours!';
     btn.style.display = 'none';
     toast('✅ Ticket submitted successfully!');
   } catch(e) {
@@ -1409,4 +1409,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
