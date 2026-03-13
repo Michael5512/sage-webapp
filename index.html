@@ -301,6 +301,7 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
         <div class="nav-item" id="nav-premium" onclick="showPage('premium',this)"><span class="icon">⭐</span> Go Premium</div>
         <div class="nav-label">Support</div>
         <div class="nav-item" id="nav-feedback" onclick="showPage('feedback',this)"><span class="icon">💬</span> Feedback</div>
+        <div class="nav-item" id="nav-support" onclick="showPage('support',this)"><span class="icon">🎫</span> Customer Care</div>
         <div class="nav-label">Admin</div>
         <div class="nav-item" id="nav-admin" onclick="showPage('admin',this)"><span class="icon">⚙️</span> Admin Panel</div>
       </nav>
@@ -494,6 +495,44 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
           </div>
         </div>
       
+        <!-- SUPPORT -->
+        <div class="page" id="page-support">
+          <div class="card" style="max-width:560px;margin:0 auto;">
+            <h3>🎫 Submit a Support Ticket</h3>
+            <p style="color:var(--text2);font-size:13px;margin:8px 0 20px;">Having an issue? We'll respond within 2 hours!</p>
+            <div class="form-group">
+              <label>Category</label>
+              <select id="ticket-category" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;outline:none;">
+                <option value="Technical">🔧 Technical Issue</option>
+                <option value="Payment">💳 Payment Issue</option>
+                <option value="Account">👤 Account Issue</option>
+                <option value="Quiz">🎯 Quiz Issue</option>
+                <option value="Content">📚 Content Request</option>
+                <option value="General">💬 General Enquiry</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="ticket-priority" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;outline:none;">
+                <option value="Low">🟢 Low — General question</option>
+                <option value="Medium" selected>🟡 Medium — Affecting my study</option>
+                <option value="High">🟠 High — Can't use a feature</option>
+                <option value="Urgent">🔴 Urgent — Can't access account or payment issue</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Describe your issue</label>
+              <textarea id="ticket-description" rows="5" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;resize:vertical;font-family:inherit;outline:none;" placeholder="Please describe your issue in detail so we can help you quickly..."></textarea>
+            </div>
+            <button class="btn-full btn-teal-full" id="ticket-btn" onclick="submitTicket()">Submit Ticket</button>
+            <div id="ticket-success" style="display:none;margin-top:16px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:10px;padding:16px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:8px;">✅</div>
+              <div style="font-weight:600;margin-bottom:4px;">Ticket Submitted!</div>
+              <div style="font-size:13px;color:var(--text2);" id="ticket-id-display">We'll get back to you within 2 hours.</div>
+            </div>
+          </div>
+        </div>
+
         <!-- ADMIN -->
         <div class="page" id="page-admin">
           <div id="admin-login" style="max-width:400px;margin:0 auto;">
@@ -552,7 +591,7 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
               </div>
             </div>
             <!-- Transactions Table -->
-            <div class="card">
+            <div class="card" style="margin-bottom:20px;">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                 <h3>💳 Transactions</h3>
                 <button class="btn-primary" onclick="loadAdminTransactions()" style="padding:6px 14px;font-size:12px;">Refresh</button>
@@ -568,6 +607,28 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
                   </tr></thead>
                   <tbody id="admin-tx-body"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">Loading...</td></tr></tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <h3>💬 Student Feedback</h3>
+                <button class="btn-primary" onclick="loadAdminFeedback()" style="padding:6px 14px;font-size:12px;">Refresh</button>
+              </div>
+              <div id="admin-feedback-list">
+                <div style="text-align:center;padding:20px;color:var(--text2);">Loading feedback...</div>
+              </div>
+            </div>
+
+            <!-- Tickets Section -->
+            <div class="card" style="margin-top:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <h3>🎫 Support Tickets</h3>
+                <button class="btn-primary" onclick="loadAdminTickets()" style="padding:6px 14px;font-size:12px;">Refresh</button>
+              </div>
+              <div id="admin-tickets-list">
+                <div style="text-align:center;padding:20px;color:var(--text2);">Loading tickets...</div>
               </div>
             </div>
           </div>
@@ -628,7 +689,7 @@ function showAuthBox(type) {
 }
 
 // ── Page Switching ──────────────────────────────────────
-const PAGE_TITLES = {home:'Dashboard',chat:'AI Chat',quiz:'Quizzes',leaderboard:'Leaderboard',profile:'Profile',premium:'Go Premium',feedback:'Feedback',admin:'Admin Panel'};
+const PAGE_TITLES = {home:'Dashboard',chat:'AI Chat',quiz:'Quizzes',leaderboard:'Leaderboard',profile:'Profile',premium:'Go Premium',feedback:'Feedback',support:'Customer Care',admin:'Admin Panel'};
 
 function showPage(name, navEl) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1160,6 +1221,26 @@ async function submitFeedback() {
   } catch(e) { toast('❌ ' + e.message); }
 }
 
+async function submitTicket() {
+  const category = document.getElementById('ticket-category').value;
+  const priority = document.getElementById('ticket-priority').value;
+  const description = document.getElementById('ticket-description').value.trim();
+  if (!description) return toast('Please describe your issue!');
+  const btn = document.getElementById('ticket-btn');
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+  try {
+    const data = await api('POST', '/api/support/ticket', {category, priority, description});
+    document.getElementById('ticket-description').value = '';
+    document.getElementById('ticket-success').style.display = 'block';
+    document.getElementById('ticket-id-display').textContent = 'Ticket ID: ' + data.ticketId + ' — We'll reply within 2 hours!';
+    btn.style.display = 'none';
+    toast('✅ Ticket submitted successfully!');
+  } catch(e) {
+    toast('❌ ' + e.message);
+    btn.textContent = 'Submit Ticket'; btn.disabled = false;
+  }
+}
+
 
 // ── Admin ────────────────────────────────────────────────
 let adminPassword = '';
@@ -1183,6 +1264,8 @@ async function adminLogin() {
     document.getElementById('admin-open-tickets').textContent = data.openTickets || 0;
     loadAdminUsers();
     loadAdminTransactions();
+    loadAdminFeedback();
+    loadAdminTickets();
   } catch { toast('❌ Could not connect to admin'); }
 }
 
@@ -1215,6 +1298,82 @@ async function loadAdminTransactions() {
         <td style="padding:8px;color:var(--text2);">${new Date(t.date).toLocaleDateString()}</td>
       </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">No transactions yet</td></tr>';
   } catch { toast('❌ Could not load transactions'); }
+}
+
+async function loadAdminFeedback() {
+  try {
+    const res = await fetch(API + '/api/admin/feedback', {headers:{'x-admin-password': adminPassword}});
+    const feedbacks = await res.json();
+    const container = document.getElementById('admin-feedback-list');
+    if (!feedbacks.length) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">No feedback yet</div>';
+      return;
+    }
+    container.innerHTML = feedbacks.map(f => `
+      <div style="border-bottom:1px solid var(--border);padding:16px 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;">${f.userId?.toString().slice(-2).toUpperCase() || '??'}</div>
+            <div>
+              <div style="font-size:13px;font-weight:500;">User Feedback</div>
+              <div style="font-size:11px;color:var(--text3);">${new Date(f.date).toLocaleDateString()} at ${new Date(f.date).toLocaleTimeString()}</div>
+            </div>
+          </div>
+          <div style="color:var(--gold);font-size:14px;">${'⭐'.repeat(f.rating || 5)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:13px;color:var(--text2);line-height:1.6;">"${f.liked || f.message || 'No message'}"</div>
+        ${f.improve ? `<div style="margin-top:8px;font-size:12px;color:var(--text3);">💡 Suggestion: ${f.improve}</div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('admin-feedback-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);">❌ Could not load feedback</div>';
+  }
+}
+
+async function loadAdminTickets() {
+  try {
+    const res = await fetch(API + '/api/admin/tickets', {headers:{'x-admin-password': adminPassword}});
+    const tickets = await res.json();
+    const container = document.getElementById('admin-tickets-list');
+    if (!tickets.length) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">No tickets yet</div>';
+      return;
+    }
+    const priorityColors = {Low:'var(--green)', Medium:'var(--gold)', High:'#ff8c00', Urgent:'var(--red)'};
+    const priorityIcons = {Low:'🟢', Medium:'🟡', High:'🟠', Urgent:'🔴'};
+    container.innerHTML = tickets.map(t => `
+      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;${t.status==='resolved'?'opacity:0.6':''}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:11px;font-weight:700;color:var(--text3);background:var(--bg3);padding:3px 8px;border-radius:4px;">${t.ticketId}</span>
+            <span style="font-size:12px;color:${priorityColors[t.priority]||'var(--text2)'};">${priorityIcons[t.priority]||'⚪'} ${t.priority}</span>
+            <span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:4px;color:var(--text2);">${t.category}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--text3);">${new Date(t.date).toLocaleDateString()}</span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${t.status==='resolved'?'rgba(0,212,170,0.1)':'rgba(255,71,87,0.1)'};color:${t.status==='resolved'?'var(--green)':'var(--red)'};">${t.status==='resolved'?'✅ Resolved':'🔴 Open'}</span>
+            ${t.status!=='resolved' ? `<button onclick="resolveTicket('${t.ticketId}')" style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--teal);color:#fff;border:none;cursor:pointer;">Mark Resolved</button>` : ''}
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:4px;">👤 ${t.userName || 'Unknown'} — <span style="color:var(--text2)">${t.email || ''}</span></div>
+        <div style="font-size:13px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;line-height:1.6;">${t.description}</div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('admin-tickets-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);">❌ Could not load tickets</div>';
+  }
+}
+
+async function resolveTicket(ticketId) {
+  try {
+    const res = await fetch(API + '/api/admin/resolve-ticket', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-admin-password': adminPassword},
+      body: JSON.stringify({ticketId})
+    });
+    if (res.ok) {
+      toast('✅ Ticket marked as resolved!');
+      loadAdminTickets();
+    }
+  } catch { toast('❌ Could not resolve ticket'); }
 }
 
 async function grantPremium() {
@@ -1250,3 +1409,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
