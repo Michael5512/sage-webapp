@@ -301,7 +301,7 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
         <div class="nav-item" id="nav-premium" onclick="showPage('premium',this)"><span class="icon">⭐</span> Go Premium</div>
         <div class="nav-label">Support</div>
         <div class="nav-item" id="nav-feedback" onclick="showPage('feedback',this)"><span class="icon">💬</span> Feedback</div>
-        <div class="nav-item" id="nav-support" onclick="showPage('support',this)"><span class="icon">🎫</span> Customer Care</div>
+        <div class="nav-item" id="nav-support" onclick="showPage('support',this);loadMyTickets()"><span class="icon">🎫</span> Customer Care</div>
         <div class="nav-label">Admin</div>
         <div class="nav-item" id="nav-admin" onclick="showPage('admin',this)"><span class="icon">⚙️</span> Admin Panel</div>
       </nav>
@@ -497,9 +497,17 @@ body{font-family:'DM Sans',sans-serif;background:#04070f;color:#e8eaf0;min-heigh
       
         <!-- SUPPORT -->
         <div class="page" id="page-support">
+          <div class="card" style="max-width:560px;margin:0 auto;margin-bottom:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <h3>📋 My Tickets</h3>
+              <button onclick="loadMyTickets()" style="font-size:12px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;">Refresh</button>
+            </div>
+            <p style="color:var(--text2);font-size:13px;margin-bottom:12px;">Track your submitted tickets and admin replies here</p>
+            <div id="my-tickets-list"><div style="text-align:center;padding:20px;color:var(--text2);">Loading your tickets...</div></div>
+          </div>
           <div class="card" style="max-width:560px;margin:0 auto;">
-            <h3>🎫 Submit a Support Ticket</h3>
-            <p style="color:var(--text2);font-size:13px;margin:8px 0 20px;">Having an issue? We'll respond within 2 hours!</p>
+            <h3>🎫 Submit a New Ticket</h3>
+            <p style="color:var(--text2);font-size:13px;margin:8px 0 20px;">Having an issue? We will respond within 2 hours!</p>
             <div class="form-group">
               <label>Category</label>
               <select id="ticket-category" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;outline:none;">
@@ -1221,6 +1229,39 @@ async function submitFeedback() {
   } catch(e) { toast('❌ ' + e.message); }
 }
 
+async function loadMyTickets() {
+  const container = document.getElementById('my-tickets-list');
+  if (!container) return;
+  try {
+    const tickets = await api('GET', '/api/support/my-tickets');
+    if (!tickets.length) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">No tickets submitted yet</div>';
+      return;
+    }
+    const statusColor = {resolved:'var(--green)', replied:'var(--teal)', open:'var(--red)'};
+    const statusLabel = {resolved:'✅ Resolved', replied:'💬 Replied', open:'🔴 Open'};
+    container.innerHTML = tickets.map(t => `
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text3);background:var(--bg3);padding:3px 8px;border-radius:4px;">${t.ticketId}</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:11px;color:var(--text3);">${new Date(t.date).toLocaleDateString()}</span>
+            <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:var(--bg3);color:${statusColor[t.status]||'var(--red)'};">${statusLabel[t.status]||'🔴 Open'}</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">${t.category} • ${t.priority} Priority</div>
+        <div style="font-size:13px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:${t.adminReply?'10px':'0'};">${t.description}</div>
+        ${t.adminReply ? `
+        <div style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.25);border-radius:8px;padding:10px;">
+          <div style="font-size:11px;color:var(--teal);font-weight:600;margin-bottom:4px;">💬 Sage Support replied • ${t.repliedAt ? new Date(t.repliedAt).toLocaleDateString() : ''}</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.6;">${t.adminReply}</div>
+        </div>` : '<div style="font-size:12px;color:var(--text3);margin-top:6px;">⏳ Awaiting reply...</div>'}
+      </div>`).join('');
+  } catch(e) {
+    if (container) container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);">No tickets yet</div>';
+  }
+}
+
 async function submitTicket() {
   const category = document.getElementById('ticket-category').value;
   const priority = document.getElementById('ticket-priority').value;
@@ -1340,7 +1381,10 @@ async function loadAdminTickets() {
     }
     const priorityColors = {Low:'var(--green)', Medium:'var(--gold)', High:'#ff8c00', Urgent:'var(--red)'};
     const priorityIcons = {Low:'🟢', Medium:'🟡', High:'🟠', Urgent:'🔴'};
-    container.innerHTML = tickets.map(t => `
+    container.innerHTML = tickets.map(t => {
+      const statusColor = t.status==='resolved' ? 'var(--green)' : t.status==='replied' ? 'var(--teal)' : 'var(--red)';
+      const statusLabel = t.status==='resolved' ? '✅ Resolved' : t.status==='replied' ? '💬 Replied' : '🔴 Open';
+      return `
       <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;${t.status==='resolved'?'opacity:0.6':''}">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -1348,15 +1392,26 @@ async function loadAdminTickets() {
             <span style="font-size:12px;color:${priorityColors[t.priority]||'var(--text2)'};">${priorityIcons[t.priority]||'⚪'} ${t.priority}</span>
             <span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:4px;color:var(--text2);">${t.category}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <span style="font-size:11px;color:var(--text3);">${new Date(t.date).toLocaleDateString()}</span>
-            <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${t.status==='resolved'?'rgba(0,212,170,0.1)':'rgba(255,71,87,0.1)'};color:${t.status==='resolved'?'var(--green)':'var(--red)'};">${t.status==='resolved'?'✅ Resolved':'🔴 Open'}</span>
-            ${t.status!=='resolved' ? `<button onclick="resolveTicket('${t.ticketId}')" style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--teal);color:#fff;border:none;cursor:pointer;">Mark Resolved</button>` : ''}
+            <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:rgba(0,0,0,0.1);color:${statusColor};">${statusLabel}</span>
+            ${t.status!=='resolved' ? `<button onclick="resolveTicket('${t.ticketId}')" style="font-size:11px;padding:3px 10px;border-radius:6px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);cursor:pointer;">Mark Resolved</button>` : ''}
           </div>
         </div>
-        <div style="font-size:13px;font-weight:500;margin-bottom:4px;">👤 ${t.userName || 'Unknown'} — <span style="color:var(--text2)">${t.email || ''}</span></div>
-        <div style="font-size:13px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;line-height:1.6;">${t.description}</div>
-      </div>`).join('');
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px;">👤 ${t.userName || 'Unknown'} — <span style="color:var(--text2)">${t.email || ''}</span></div>
+        <div style="font-size:13px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px;line-height:1.6;margin-bottom:10px;">${t.description}</div>
+        ${t.adminReply ? `
+        <div style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.2);border-radius:8px;padding:10px;margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--teal);font-weight:600;margin-bottom:4px;">💬 Your Reply — ${t.repliedAt ? new Date(t.repliedAt).toLocaleDateString() : ''}</div>
+          <div style="font-size:13px;color:var(--text);">${t.adminReply}</div>
+        </div>` : ''}
+        ${t.status !== 'resolved' ? `
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <textarea id="reply-${t.ticketId}" rows="2" placeholder="Type your reply to ${t.userName || 'student'}..." style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:13px;resize:vertical;font-family:inherit;outline:none;"></textarea>
+          <button onclick="sendTicketReply('${t.ticketId}')" style="padding:8px 14px;background:var(--teal);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;align-self:flex-end;">Send Reply</button>
+        </div>` : ''}
+      </div>`;
+    }).join('');
   } catch(e) {
     document.getElementById('admin-tickets-list').innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);">❌ Could not load tickets</div>';
   }
@@ -1374,6 +1429,25 @@ async function resolveTicket(ticketId) {
       loadAdminTickets();
     }
   } catch { toast('❌ Could not resolve ticket'); }
+}
+
+async function sendTicketReply(ticketId) {
+  const textarea = document.getElementById('reply-' + ticketId);
+  const reply = textarea ? textarea.value.trim() : '';
+  if (!reply) return toast('Please type a reply first!');
+  try {
+    const res = await fetch(API + '/api/admin/reply-ticket', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-admin-password': adminPassword},
+      body: JSON.stringify({ticketId, reply})
+    });
+    if (res.ok) {
+      toast('✅ Reply sent to student!');
+      loadAdminTickets();
+    } else {
+      toast('❌ Could not send reply');
+    }
+  } catch { toast('❌ Could not send reply'); }
 }
 
 async function grantPremium() {
@@ -1409,3 +1483,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
